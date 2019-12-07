@@ -9,7 +9,9 @@ import (
 	"log"
 	"os"
 	"path"
+	"sort"
 	"strconv"
+	"strings"
 )
 
 // Track describes a individual song in the library or playlist.
@@ -22,6 +24,32 @@ type Track struct {
 	Index    int
 }
 
+func (t Track) String() string {
+	var str strings.Builder
+	str.WriteString(t.Title)
+	str.WriteString(t.Album)
+	str.WriteString(t.Artist)
+	return str.String()
+}
+
+// Tracks is a slice of tracks; used to define custom sort
+type Tracks []Track
+
+func (t Tracks) Len() int {
+	return len(t)
+}
+
+func (t Tracks) Swap(a, b int) {
+	t[a], t[b] = t[b], t[a]
+}
+
+func (t Tracks) Less(a, b int) bool {
+	aValue := t[a].String()
+	bValue := t[b].String()
+	return aValue < bValue
+}
+
+// Entry point
 func main() {
 	sourceArg := flag.String("source", ".", "location of the Google Takeout export")
 	destArg := flag.String("dest", ".", "where to store the flattened files")
@@ -32,13 +60,13 @@ func main() {
 	fmt.Println("Done.")
 }
 
-// Flatten the library collection.
+// Flatten the library collection
 func flattenLibrary(source string, dest string) {
 	source = path.Join(source)
 	flattenPlaylist("main library", source, path.Join(dest, "Library"))
 }
 
-// Find and flatten all of the playlists.
+// Find and flatten all of the playlists
 func flattenPlaylists(source string, dest string) {
 	playlistsFolder := path.Join(source, "Playlists")
 	files, err := ioutil.ReadDir(playlistsFolder)
@@ -51,7 +79,7 @@ func flattenPlaylists(source string, dest string) {
 	}
 }
 
-// Flatten an individual playlist.
+// Flatten an individual playlist
 func flattenPlaylist(name string, source string, dest string) {
 	fmt.Println("Flattening", name)
 
@@ -60,10 +88,11 @@ func flattenPlaylist(name string, source string, dest string) {
 	}
 
 	tracks := readTrackCollection(source)
+	sort.Sort(Tracks(tracks))
 	writeTrackCollection(dest+".csv", tracks)
 }
 
-// Load a track collection, e.g. the library or a playlist.
+// Load a track collection, e.g. the library or a playlist
 func readTrackCollection(collectionPath string) []Track {
 	var tracks []Track
 
@@ -108,7 +137,7 @@ func readSingleTrack(trackPath string) Track {
 	}
 }
 
-// Write out the collection CSV, which now contains all of the track info.
+// Write out the collection CSV, which now contains all of the track info
 func writeTrackCollection(collectionPath string, tracks []Track) {
 	os.MkdirAll(path.Dir(collectionPath), os.ModePerm)
 
@@ -138,7 +167,7 @@ func writeTrackCollection(collectionPath string, tracks []Track) {
 	}
 }
 
-// Test and exit on error.
+// Test and exit on error
 func checkError(message string, err error) {
 	if err != nil {
 		log.Fatal(message, err)
