@@ -21,7 +21,6 @@ type Track struct {
 	Artist   string
 	Duration int
 	Removed  bool
-	Index    int
 }
 
 func (t Track) String() string {
@@ -122,18 +121,12 @@ func readSingleTrack(trackPath string) Track {
 
 	duration, _ := strconv.ParseInt(line[3], 10, 64)
 
-	var index int64
-	if len(line) > 7 {
-		index, _ = strconv.ParseInt(line[7], 10, 64)
-	}
-
 	return Track{
 		Title:    line[0],
 		Album:    line[1],
 		Artist:   line[2],
 		Duration: int(duration),
 		Removed:  ("Yes" == line[6]),
-		Index:    int(index),
 	}
 }
 
@@ -148,7 +141,7 @@ func writeTrackCollection(collectionPath string, tracks []Track) {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	err = writer.Write([]string{"Title", "Album", "Artist", "Duration", "Index"})
+	err = writer.Write([]string{"Title", "Album", "Artist", "Duration"})
 	checkError("Cannot write to file", err)
 
 	for _, track := range tracks {
@@ -158,7 +151,6 @@ func writeTrackCollection(collectionPath string, tracks []Track) {
 				track.Album,
 				track.Artist,
 				strconv.Itoa(track.Duration),
-				strconv.Itoa(track.Index),
 			}
 
 			err := writer.Write(line)
