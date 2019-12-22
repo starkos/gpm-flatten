@@ -28,6 +28,7 @@ func (t Track) String() string {
 	str.WriteString(t.Title)
 	str.WriteString(t.Album)
 	str.WriteString(t.Artist)
+	str.WriteString(strconv.Itoa(t.Duration))
 	return str.String()
 }
 
